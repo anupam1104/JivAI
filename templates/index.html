@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JivAI — Autonomous Resume & Application Agent</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header>
+    <h1>🧭 JivAI</h1>
+    <p class="subtitle">Autonomous Resume & Application Agent</p>
+  </header>
+
+  <main>
+    <section id="input-section" class="panel">
+      <div class="section-header">
+        <h2>1. Candidate & Target Role</h2>
+        <button id="load-demo-btn" class="secondary">Load Demo Example</button>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label>Full name</label>
+          <input type="text" id="cand-name" placeholder="e.g. Priya Singh" />
+
+          <label>Verified skills (comma-separated — only these can be claimed)</label>
+          <textarea id="cand-skills" rows="2" placeholder="Python, FastAPI, PostgreSQL, Docker"></textarea>
+
+          <label>Projects / experience (one per line: Title — description)</label>
+          <textarea id="cand-projects" rows="5"
+            placeholder="Campus Marketplace API — Built a REST API using FastAPI and PostgreSQL for a peer-to-peer marketplace."></textarea>
+        </div>
+
+        <div>
+          <label>Target job title</label>
+          <input type="text" id="jd-title" placeholder="e.g. Backend Software Engineer" />
+
+          <label>Target company (fictional for demo purposes)</label>
+          <input type="text" id="jd-company" placeholder="e.g. Solstice Systems" />
+
+          <label>Paste job description text</label>
+          <textarea id="jd-text" rows="7" placeholder="Paste the full JD here..."></textarea>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="trigger-conflict" checked />
+          Trigger fact-consistency conflict (required demo scenario)
+        </label>
+        <button id="run-btn">▶ Run JivAI</button>
+      </div>
+    </section>
+
+    <section id="results" style="display:none">
+      <div class="columns">
+        <div id="log-panel" class="panel">
+          <h2>2. Agent Execution Log</h2>
+          <div id="log-entries"></div>
+        </div>
+        <div id="state-panel" class="panel">
+          <h2>3. Case State</h2>
+          <div id="state-summary"></div>
+          <h3>Evaluation history</h3>
+          <div id="eval-history"></div>
+          <button id="pdf-btn" style="display:none">📄 Download Final Resume PDF</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
