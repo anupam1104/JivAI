@@ -70,6 +70,7 @@ def run():
         "eval_history": state.eval_history,
         "draft_versions": state.draft_versions,
         "jd_title": jd_title,
+        "jd_text": jd_text,
     })
 
 
@@ -77,12 +78,12 @@ def run():
 def render_pdf():
     body = request.get_json(silent=True) or {}
     resume = body.get("resume")
-    jd_title = body.get("jd_title", "Target Role")
+    jd_text = body.get("jd_text") or resume.get("jd_text") or ""
 
     if resume is None:
         return jsonify({"error": "No resume provided"}), 400
 
-    pdf_bytes = render_resume_pdf_bytes(resume, jd_title)
+    pdf_bytes = render_resume_pdf_bytes(resume, jd_text)
     return send_file(
         io.BytesIO(pdf_bytes),
         mimetype="application/pdf",

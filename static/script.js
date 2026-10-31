@@ -4,6 +4,7 @@ let skillsTaxonomy = [];
 let defaultData = null;
 let lastResume = null;
 let lastJdTitle = "";
+let lastJdText = "";
 
 async function init() {
   const res = await fetch("/api/demo-data");
@@ -18,6 +19,8 @@ function loadDemoExample() {
   document.getElementById("cand-email").value = defaultData.candidate.email || "";
   document.getElementById("cand-phone").value = defaultData.candidate.phone || "";
   document.getElementById("cand-location").value = defaultData.candidate.location || "";
+  document.getElementById("cand-github").value = defaultData.candidate.github || "";
+  document.getElementById("cand-linkedin").value = defaultData.candidate.linkedin || "";
   document.getElementById("cand-skills").value = defaultData.candidate.verified_skills.join(", ");
 
   const projectLines = defaultData.candidate.projects
@@ -50,6 +53,10 @@ function buildCandidateFromForm() {
     || `${name.toLowerCase().replace(/\s+/g, ".")}@example.com`;
   const phone = document.getElementById("cand-phone").value.trim() || "N/A";
   const location = document.getElementById("cand-location").value.trim() || "N/A";
+  const githubId = document.getElementById("cand-github").value.trim();
+  const linkedinId = document.getElementById("cand-linkedin").value.trim();
+  const github = githubId ? `https://github.com/${githubId.replace(/^https?:\/\/(www\.)?github\.com\//i, "")}` : "";
+  const linkedin = linkedinId ? `https://www.linkedin.com/in/${linkedinId.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, "")}` : "";
 
   const verifiedSkills = document.getElementById("cand-skills").value
     .split(",").map((s) => s.trim()).filter(Boolean);
@@ -101,6 +108,8 @@ function buildCandidateFromForm() {
     email,
     phone,
     location,
+    github,
+    linkedin,
     education,
     projects,
     experience,
@@ -168,6 +177,7 @@ async function runAgent() {
 
   lastResume = data.resume;
   lastJdTitle = data.jd_title;
+  lastJdText = data.jd_text || jdText;
   document.getElementById("pdf-btn").style.display = "inline-block";
 
   btn.disabled = false;
@@ -179,7 +189,7 @@ async function downloadPdf() {
   const res = await fetch("/api/render-pdf", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ resume: lastResume, jd_title: lastJdTitle }),
+    body: JSON.stringify({ resume: lastResume, jd_title: lastJdTitle, jd_text: lastJdText }),
   });
   if (!res.ok) {
     console.error("PDF render failed", res.status);

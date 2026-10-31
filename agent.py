@@ -170,10 +170,33 @@ def draft_resume(candidate: dict, jd_title: str, jd_company: str,
         + "."
     )
 
+    github = (candidate.get("github") or "").strip()
+    linkedin = (candidate.get("linkedin") or "").strip()
+    github_url = f"https://github.com/{github}" if github and not github.startswith(("http://", "https://")) else github
+    linkedin_url = f"https://www.linkedin.com/in/{linkedin}" if linkedin and not linkedin.startswith(("http://", "https://")) else linkedin
+
+    contact_parts = []
+    if candidate.get("email"):
+        contact_parts.append(f"Email: {candidate.get('email')}")
+    if candidate.get("phone"):
+        contact_parts.append(f"Phone: {candidate.get('phone')}")
+    if candidate.get("location"):
+        contact_parts.append(f"Location: {candidate.get('location')}")
+    if github_url:
+        contact_parts.append(f"GitHub: {github_url}")
+    if linkedin_url:
+        contact_parts.append(f"LinkedIn: {linkedin_url}")
+    contact = " | ".join(contact_parts)
+
     resume = {
         "version": version,
         "name": candidate["name"],
-        "contact": f"{candidate.get('email','')} | {candidate.get('phone','')} | {candidate.get('location','')}",
+        "contact": contact,
+        "email": candidate.get("email") or "",
+        "phone": candidate.get("phone") or "",
+        "location": candidate.get("location") or "",
+        "github": github_url,
+        "linkedin": linkedin_url,
         "summary": summary,
         "skills": skills_section,
         "education": candidate.get("education", []),
