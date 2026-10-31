@@ -87,7 +87,7 @@ def render_pdf():
         io.BytesIO(pdf_bytes),
         mimetype="application/pdf",
         as_attachment=True,
-        download_name=f"{resume['name'].replace(' ', '_')}_resume.pdf",
+        download_name=f"{(resume.get('name') or 'Candidate').replace(' ', '_')}_resume.pdf",
     )
 
 

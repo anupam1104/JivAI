@@ -15,13 +15,21 @@ async function init() {
 function loadDemoExample() {
   if (!defaultData) return;
   document.getElementById("cand-name").value = defaultData.candidate.name;
+  document.getElementById("cand-email").value = defaultData.candidate.email || "";
+  document.getElementById("cand-phone").value = defaultData.candidate.phone || "";
+  document.getElementById("cand-location").value = defaultData.candidate.location || "";
   document.getElementById("cand-skills").value = defaultData.candidate.verified_skills.join(", ");
 
   const projectLines = defaultData.candidate.projects
     .map((p) => `${p.title} — ${p.description}`)
-    .concat(defaultData.candidate.experience.map((e) => `${e.title} @ ${e.org} — ${e.description}`))
+    .concat(defaultData.candidate.experience.map((e) => `${e.title} @ ${e.org} — ${e.duration} — ${e.description}`))
     .join("\n");
   document.getElementById("cand-projects").value = projectLines;
+
+  const educationLines = (defaultData.candidate.education || [])
+    .map((e) => `${e.degree} — ${e.institution} (${e.year}) — GPA ${e.gpa}`)
+    .join("\n");
+  document.getElementById("cand-education").value = educationLines;
 
   document.getElementById("jd-title").value = defaultData.jd_title;
   document.getElementById("jd-company").value = defaultData.jd_company;
@@ -38,27 +46,64 @@ function detectSkills(text) {
 
 function buildCandidateFromForm() {
   const name = document.getElementById("cand-name").value.trim() || "Candidate";
+  const email = document.getElementById("cand-email").value.trim()
+    || `${name.toLowerCase().replace(/\s+/g, ".")}@example.com`;
+  const phone = document.getElementById("cand-phone").value.trim() || "N/A";
+  const location = document.getElementById("cand-location").value.trim() || "N/A";
+
   const verifiedSkills = document.getElementById("cand-skills").value
     .split(",").map((s) => s.trim()).filter(Boolean);
 
   const projectLines = document.getElementById("cand-projects").value
     .split("\n").map((l) => l.trim()).filter(Boolean);
 
-  const projects = projectLines.map((line) => {
+  const projects = [];
+  const experience = [];
+  projectLines.forEach((line) => {
     const [titlePart, ...descParts] = line.split("—");
     const title = (titlePart || "Project").trim();
     const description = (descParts.join("—") || "").trim() || title;
-    return { title, description, skills: detectSkills(line) };
+
+    // Lines like "Backend Intern @ Acme Corp — May 2025 - Jul 2025 — ..." are experience.
+    const atIdx = title.indexOf("@");
+    if (atIdx >= 0) {
+      const org = title.slice(atIdx + 1).trim();
+      const duration = (descParts[0] || "").trim();
+      const desc = (descParts.slice(1).join("—") || "").trim() || description;
+      experience.push({
+        title: title.slice(0, atIdx).trim(),
+        org,
+        duration,
+        description: desc,
+        skills: detectSkills(line),
+      });
+      return;
+    }
+
+    projects.push({ title, description, skills: detectSkills(line) });
   });
+
+  const educationLines = document.getElementById("cand-education").value
+    .split("\n").map((l) => l.trim()).filter(Boolean);
+  const education = educationLines.map((line) => {
+    const parts = line.split("—").map((p) => p.trim()).filter(Boolean);
+    const degree = parts[0] || "";
+    const instYear = parts[1] || "";
+    const gpa = parts[2] || "";
+    const yearMatch = instYear.match(/\(([^)]*)\)/);
+    const institution = yearMatch ? instYear.slice(0, yearMatch.index).trim() : instYear;
+    const year = yearMatch ? yearMatch[1] : "";
+    return { degree, institution, year, gpa };
+  }).filter((e) => e.degree);
 
   return {
     name,
-    email: `${name.toLowerCase().replace(/\s+/g, ".")}@example.com`,
-    phone: "N/A",
-    location: "N/A",
-    education: [],
+    email,
+    phone,
+    location,
+    education,
     projects,
-    experience: [],
+    experience,
     verified_skills: verifiedSkills,
   };
 }
@@ -136,6 +181,10 @@ async function downloadPdf() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ resume: lastResume, jd_title: lastJdTitle }),
   });
+  if (!res.ok) {
+    console.error("PDF render failed", res.status);
+    return;
+  }
   const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");

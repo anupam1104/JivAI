@@ -144,7 +144,15 @@ def draft_resume(candidate: dict, jd_title: str, jd_company: str,
     supported_skills = [k for k, v in evidence_map.items() if v["supported"]]
     unsupported_skills = [k for k, v in evidence_map.items() if not v["supported"]]
 
-    skills_section = list(supported_skills)
+    # Every skill the candidate declared as verified is evidence-backed in
+    # itself. Start from the JD-relevant supported skills and then append the
+    # candidate's other real verified skills so the final resume never ends up
+    # with an empty Skills section just because the JD keywords didn't align.
+    candidate_skills = [s for s in (candidate.get("verified_skills") or []) if isinstance(s, str) and s.strip()]
+    supported_set = set(supported_skills)
+    skills_section = [s for s in candidate_skills if s in supported_set]
+    skills_section += [s for s in candidate_skills if s not in supported_set]
+
     fabricated_claims: list[str] = []
 
     if tempt_fabrication and unsupported_skills:

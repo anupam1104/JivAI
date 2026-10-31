@@ -32,31 +32,32 @@ def render_resume_pdf_bytes(resume: dict, jd_title: str) -> bytes:
                                        leading=13.5, fontName="Helvetica-Bold")
 
     story = [
-        Paragraph(resume["name"], name_style),
+        Paragraph(resume.get("name") or "Candidate", name_style),
         Paragraph(f"Applying for: {jd_title}", contact_style),
-        Paragraph(resume["contact"], contact_style),
+        Paragraph(resume.get("contact") or "", contact_style),
         HRFlowable(width="100%", color=colors.HexColor("#cccccc")),
         Paragraph("Summary", section_style),
-        Paragraph(resume["summary"], body_style),
+        Paragraph(resume.get("summary") or "—", body_style),
         Paragraph("Skills", section_style),
-        Paragraph(", ".join(resume["skills"]) if resume["skills"] else "—", body_style),
+        Paragraph(", ".join(str(s) for s in (resume.get("skills") or [])) if (resume.get("skills")) else "—", body_style),
         Paragraph("Experience", section_style),
     ]
-    for e in resume.get("experience", []):
-        story.append(Paragraph(f"{e['title']} — {e['org']} ({e['duration']})", item_title_style))
-        story.append(Paragraph(e["description"], body_style))
+    for e in resume.get("experience") or []:
+        story.append(Paragraph(f"{e.get('title') or '?'} — {e.get('org') or '?'} ({e.get('duration') or '?'})", item_title_style))
+        story.append(Paragraph(e.get("description") or "—", body_style))
         story.append(Spacer(1, 6))
 
     story.append(Paragraph("Projects", section_style))
-    for p in resume.get("projects", []):
-        story.append(Paragraph(p["title"], item_title_style))
-        story.append(Paragraph(p["description"], body_style))
+    for p in resume.get("projects") or []:
+        story.append(Paragraph(p.get("title") or "Project", item_title_style))
+        story.append(Paragraph(p.get("description") or "—", body_style))
         story.append(Spacer(1, 6))
 
     story.append(Paragraph("Education", section_style))
-    for ed in resume.get("education", []):
+    for ed in resume.get("education") or []:
         story.append(Paragraph(
-            f"{ed['degree']}, {ed['institution']} ({ed['year']}) — GPA {ed['gpa']}", body_style))
+            f"{ed.get('degree') or '?'}, {ed.get('institution') or '?'} ({ed.get('year') or '?'}) — GPA {ed.get('gpa') or '—'}",
+            body_style))
 
     doc.build(story)
     return buf.getvalue()
